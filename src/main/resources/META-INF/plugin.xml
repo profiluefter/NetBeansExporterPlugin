@@ -1,0 +1,23 @@
+<idea-plugin>
+    <id>me.profiluefter.netbeans-exporter-plugin</id>
+    <name>NetBeans Exporter</name>
+    <vendor>Profiuefter</vendor>
+
+    <description><![CDATA[
+    This plugin can automatically add the necessary files a project so that it can be opened with the NetBeans IDE.
+    Currently it does not have support for dependencies.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+    </extensions>
+    <actions>
+        <action id="me.profiluefter.netbeansExporterPlugin.NetBeansExportAction"
+                class="me.profiluefter.netbeansExporterPlugin.NetBeansExportAction" text="Project to NetBeans...">
+            <add-to-group group-id="FileExportGroup" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>
