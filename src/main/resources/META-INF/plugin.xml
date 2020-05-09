@@ -1,23 +1,23 @@
 <idea-plugin>
-    <id>me.profiluefter.netbeans-exporter-plugin</id>
+    <id>me.profiluefter.netbeansExporterPlugin</id>
     <name>NetBeans Exporter</name>
-    <vendor>Profiuefter</vendor>
+    <vendor url="https://profiluefter.me" email="fabian.paul.gurtner@gmail.com" >Profiluefter</vendor>
 
-    <description><![CDATA[
-    This plugin can automatically add the necessary files a project so that it can be opened with the NetBeans IDE.
-    Currently it does not have support for dependencies.
-    ]]></description>
+    <description>Transforms the project so that it can be opened with the NetBeans IDE</description>
+    <version>1.0.0</version>
+    <idea-version since-build="183"/><!-- TODO: Confirm range -->
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
 
-    <extensions defaultExtensionNs="com.intellij">
-        <!-- Add your extensions here -->
-    </extensions>
+    <!-- TODO: Integrate with Moodle plugin -->
+
     <actions>
         <action id="me.profiluefter.netbeansExporterPlugin.NetBeansExportAction"
-                class="me.profiluefter.netbeansExporterPlugin.NetBeansExportAction" text="Project to NetBeans...">
-            <add-to-group group-id="FileExportGroup" anchor="last"/>
+                class="me.profiluefter.netbeansExporterPlugin.NetBeansExportAction" text="Export Project to NetBeans...">
+            <add-to-group group-id="ExportImportGroup"/>
+<!--            <add-to-group group-id="FileExportGroup"/>-->
+<!--            <override-text place="MainMenu" text="Project to NetBeans..."/>-->
         </action>
     </actions>
 </idea-plugin>

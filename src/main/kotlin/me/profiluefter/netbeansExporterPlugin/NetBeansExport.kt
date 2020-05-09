@@ -16,7 +16,6 @@ import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.ui.components.JBList
 import com.intellij.util.io.exists
-import com.intellij.util.io.write
 import me.profiluefter.netbeansExporterPlugin.NetBeansProjectFile.*
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -30,7 +29,7 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
 
-val notificationGroup: NotificationGroup =
+val notificationGroup: NotificationGroup = 
     NotificationGroup("NetBeans Export Errors", NotificationDisplayType.BALLOON, true)
 
 class NetBeansExportException(override var message: String) : Exception(message)
@@ -44,7 +43,7 @@ enum class NetBeansProjectFile(val fileName: String) {
 
 fun handleError(exception: NetBeansExportException, project: Project?) {
     val notification =
-        notificationGroup.createNotification("Error while exporting!", exception.message, NotificationType.ERROR)
+        notificationGroup.createNotification("Error while exporting!", null, exception.message, NotificationType.ERROR)
     notification.addAction(NetBeansExportAction())
     notification.notify(project)
 }
@@ -88,7 +87,9 @@ fun exportNetBeansProject(project: Project?, force: Boolean = false) {
 
                     map.forEach {
                         indicator.fraction += 1.toDouble() / values().size
-                        Paths.get(project.basePath!!, it.key.fileName).write(it.value, true)
+                        val file = Paths.get(project.basePath!!, it.key.fileName).toFile()
+                        file.parentFile.mkdirs()
+                        file.writeText(it.value)
                     }
 
                     indicator.checkCanceled()

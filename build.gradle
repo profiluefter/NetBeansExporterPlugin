@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'me.profiluefter'
-version '1.0-SNAPSHOT'
+version "1.0"
 
 repositories {
     mavenCentral()
@@ -16,7 +16,9 @@ intellij {
     //noinspection GroovyAssignabilityCheck
     localPath project.properties['intellij.localPath']
     updateSinceUntilBuild false
-    plugins "java"
+
+    //Required in modern IDEA, remove when building with old versions
+    //plugins "java"
 }
 publishPlugin {
     token = System.getenv("intellijPublishToken")
@@ -28,7 +30,5 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 patchPluginXml {
-    changeNotes """
-      Add change notes here.<br>
-      <em>most HTML tags may be used</em>"""
+    changeNotes "Initial release of the plugin. Currently it does not have support for dependencies."
 }
