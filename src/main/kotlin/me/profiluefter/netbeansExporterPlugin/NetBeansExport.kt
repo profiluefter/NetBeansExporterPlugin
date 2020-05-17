@@ -1,19 +1,14 @@
 package me.profiluefter.netbeansExporterPlugin
 
-import com.intellij.execution.RunManager
-import com.intellij.execution.application.ApplicationConfiguration
-import com.intellij.execution.application.ApplicationConfigurationType
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.progress.PerformInBackgroundOption
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.packaging.impl.elements.ManifestFileUtil
 import com.intellij.ui.components.JBList
 import com.intellij.util.io.exists
 import me.profiluefter.netbeansExporterPlugin.NetBeansProjectFile.*
@@ -29,7 +24,7 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
 
-val notificationGroup: NotificationGroup = 
+val notificationGroup: NotificationGroup =
     NotificationGroup("NetBeans Export Errors", NotificationDisplayType.BALLOON, true)
 
 class NetBeansExportException(override var message: String) : Exception(message)
@@ -63,45 +58,25 @@ fun exportNetBeansProject(project: Project?, force: Boolean = false) {
             return
         }
 
-        object : Task.Backgroundable(project, "Exporting NetBeans Project...", true, PerformInBackgroundOption.DEAF) {
-            override fun run(indicator: ProgressIndicator) {
+        values().forEach {
+            var exception: NetBeansExportException? = null
+            ReadAction.run<NetBeansExportException> {
                 try {
-                    indicator.text = "Generating files..."
-                    indicator.isIndeterminate = false
-
-                    values().forEach {
-                        indicator.fraction += 1.toDouble() / values().size
-                        var exception: NetBeansExportException? = null
-                        ReadAction.run<NetBeansExportException> {
-                            try {
-                                map[it] = generateFileContent(project, it)
-                            } catch (e: NetBeansExportException) {
-                                exception = e
-                            }
-                        }
-                        if (exception != null) throw exception!!
-                    }
-
-                    indicator.checkCanceled()
-                    indicator.text = "Writing files..."
-
-                    map.forEach {
-                        indicator.fraction += 1.toDouble() / values().size
-                        val file = Paths.get(project.basePath!!, it.key.fileName).toFile()
-                        file.parentFile.mkdirs()
-                        file.writeText(it.value)
-                    }
-
-                    indicator.checkCanceled()
-                    indicator.text = "Refreshing files..."
-                    indicator.isIndeterminate = true
-
-                    LocalFileSystem.getInstance().refresh(false)
-                } catch (exception: NetBeansExportException) {
-                    handleError(exception, project)
+                    map[it] = generateFileContent(project, it)
+                } catch (e: NetBeansExportException) {
+                    exception = e
                 }
             }
-        }.queue()
+            if (exception != null) throw exception!!
+        }
+
+        map.forEach {
+            val file = Paths.get(project.basePath!!, it.key.fileName).toFile()
+            file.parentFile.mkdirs()
+            file.writeText(it.value)
+        }
+
+        LocalFileSystem.getInstance().refresh(false)
     } catch (exception: NetBeansExportException) {
         handleError(exception, project)
     }
@@ -184,17 +159,9 @@ fun generateFileContent(project: Project, file: NetBeansProjectFile): String {
             properties["excludes"] = ""
             properties["includes"] = "**"
 
-            val list = RunManager.getInstance(project).allConfigurationsList
-                .asSequence()
-                .filter { it.type is ApplicationConfigurationType }
-                .map { it as ApplicationConfiguration }
-                .mapNotNull { it.mainClass }
-                .mapNotNull { it.qualifiedName }
-                .toList()
-            //TODO: Support choosing the Main class using TreeClassChooserFactory
-            if (list.size != 1)
-                throw NetBeansExportException("Could not find a single Main class! Actual amount: ${list.size}")
-            properties["main.class"] = list[0]
+            val main = ManifestFileUtil.selectMainClass(project, null)
+                ?: throw NetBeansExportException("Please select a Main class!")
+            properties["main.class"] = main.qualifiedName
 
             //TODO: Dependencies
 
