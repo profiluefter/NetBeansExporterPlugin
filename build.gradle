@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'me.profiluefter'
-version "1.1"
+version "2"
 
 repositories {
     mavenCentral()
@@ -30,5 +30,5 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 patchPluginXml {
-    changeNotes "The plugin is now using a class chooser rather than looking at the run configurations to determine the main class."
+    changeNotes "Library support! Libraries that were declared in the project structure are now processed to a NetBeans compatible format."
 }

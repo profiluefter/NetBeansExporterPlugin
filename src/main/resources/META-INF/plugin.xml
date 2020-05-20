@@ -5,7 +5,7 @@
 
     <description>Transforms the project so that it can be opened with the NetBeans IDE</description>
     <version>1.0.0</version>
-    <idea-version since-build="183"/><!-- TODO: Confirm range -->
+    <idea-version since-build="183"/>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
