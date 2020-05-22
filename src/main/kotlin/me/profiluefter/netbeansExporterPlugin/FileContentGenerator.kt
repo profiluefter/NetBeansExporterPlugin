@@ -85,16 +85,16 @@ fun generateFileContent(project: Project, file: NetBeansProjectFile): String {
             fun buildClasspath(vararg scopes: Scope): String {
                 val classpath = ArrayList<String>()
                 for (scope in scopes) {
-                    classpath.add(when (scope) {
-                        ProductionOutput -> "\${build.classes.dir}"
-                        TestOutput -> "\${build.test.classes.dir}"
+                    when (scope) {
+                        ProductionOutput -> classpath.add("\${build.classes.dir}")
+                        TestOutput -> classpath.add("\${build.test.classes.dir}")
                         else -> {
-                            LibraryManager.libraries[scope.dependencyScope]!!
-                                .map(Library::id).joinToString(":") { "\${libs.$it.classpath}" }
+                            classpath.addAll(LibraryManager.libraries[scope.dependencyScope]!!
+                                .map(Library::id).map { "\${libs.$it.classpath}" })
                         }
-                    })
+                    }
                 }
-                return classpath.filterNot { it.isEmpty() }.joinToString(":")
+                return classpath.filterNot { it.isEmpty() }.distinct().joinToString(":")
             }
 
             properties["javac.classpath"] = buildClasspath(Compile, Provided)

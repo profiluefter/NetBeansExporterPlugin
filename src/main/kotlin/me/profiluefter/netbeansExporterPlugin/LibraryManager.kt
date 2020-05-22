@@ -3,9 +3,7 @@ package me.profiluefter.netbeansExporterPlugin
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.DependencyScope
-import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.roots.*
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.util.containers.enumMapOf
 import java.io.File
@@ -33,39 +31,49 @@ class LibraryManager {
                 }
             assert(librariesFolder != null)
 
-            for (module in ModuleManager.getInstance(project).modules) {
-                if (module.moduleTypeName != "JAVA_MODULE") continue
-                val modifiableModel = ModuleRootManager.getInstance(module).modifiableModel
-                try {
-                    for (library in modifiableModel.moduleLibraryTable.libraries) {
-                        val classPathEntries = ArrayList<String>()
-                        for (virtualFile in library.getFiles(OrderRootType.CLASSES)) {
-                            if (librariesFolder!!.findChild(virtualFile.name) == null)
-                                WriteAction.run<NetBeansExportException> {
-                                    val libraryFile = (LocalFileSystem.getInstance()
-                                        .findFileByPath(virtualFile.path.trimEnd('!', '/', '\\'))
-                                        ?: throw NetBeansExportException("Library path for library \"${library.name}\" could not be found on disk!"))
-                                    libraryFile.copy(null, librariesFolder!!, virtualFile.name)
+            fun addLibrary(pair: Pair<DependencyScope, com.intellij.openapi.roots.libraries.Library>) {
+                val scope = pair.first
+                val library = pair.second
 
-                                    changedFiles.add(File(libraryFile.path))
-                                }
+                val classPathEntries = ArrayList<String>()
+                for (virtualFile in library.getFiles(OrderRootType.CLASSES)) {
+                    if (librariesFolder!!.findChild(virtualFile.name) == null)
+                        WriteAction.run<NetBeansExportException> {
+                            val libraryFile = (LocalFileSystem.getInstance()
+                                .findFileByPath(virtualFile.path.trimEnd('!', '/', '\\'))
+                                ?: throw NetBeansExportException("Library path for library \"${library.name}\" could not be found on disk!"))
+                            libraryFile.copy(null, librariesFolder!!, virtualFile.name)
 
-                            classPathEntries.add("\${base}/${virtualFile.name}")
+                            changedFiles.add(File(libraryFile.path))
                         }
-                        val name = library.name ?: libraries.size.toString()
-                        val libraryObject = Library(
-                            name.filter { it.isJavaIdentifierPart() },
-                            classPathEntries.joinToString(":"),
-                            name
-                        )
 
-                        val scope = modifiableModel.findLibraryOrderEntry(library)!!.scope
-                        libraries.getValue(scope).add(libraryObject)
-                    }
-                } finally {
-                    modifiableModel.dispose()
+                    classPathEntries.add("\${base}/${virtualFile.name}")
                 }
+                val name = library.name ?: libraries.size.toString()
+                val libraryObject = Library(
+                    name.filter { it.isJavaIdentifierPart() },
+                    classPathEntries.joinToString(":"),
+                    name
+                )
+
+                libraries.getValue(scope).add(libraryObject)
             }
+
+            val disposableModels: MutableList<ModifiableRootModel> = ArrayList()
+
+            ModuleManager.getInstance(project).modules
+                .flatMap {
+                    disposableModels.addAndReturn(ModuleRootManager.getInstance(it).modifiableModel)
+                        .orderEntries.asIterable() }
+                .filterIsInstance<LibraryOrderEntry>()
+                .map {
+                    if(it.scope == DependencyScope.COMPILE && ModuleRootManager.getInstance(it.ownerModule).getSourceRoots(false).isEmpty())
+                        return@map DependencyScope.TEST to it.library!!
+                    return@map it.scope to it.library!!
+                }
+                .forEach(::addLibrary)
+
+            disposableModels.forEach(ModifiableRootModel::dispose)
         }
     }
 }

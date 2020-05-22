@@ -37,3 +37,8 @@ operator fun Element.get(name: String): String = getAttribute(name)
 operator fun Node.plusAssign(element: Element) {
     appendChild(element)
 }
+
+fun <E> MutableList<E>.addAndReturn(element: E): E {
+    this.add(element)
+    return element
+}
