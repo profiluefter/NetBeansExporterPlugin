@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'me.profiluefter'
-version "2"
+version "3"
 
 repositories {
     mavenCentral()
@@ -30,5 +30,5 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 patchPluginXml {
-    changeNotes "Library support! Libraries that were declared in the project structure are now processed to a NetBeans compatible format."
+    changeNotes "The plugin now looks for the project source folders instead of assuming they are named \"src\" and \"test\"!"
 }

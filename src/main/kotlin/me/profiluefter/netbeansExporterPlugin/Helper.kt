@@ -1,8 +1,10 @@
 package me.profiluefter.netbeansExporterPlugin
 
+import com.intellij.openapi.vfs.VirtualFile
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
+import java.io.File
 import java.io.StringWriter
 import java.util.*
 import javax.xml.transform.OutputKeys
@@ -41,4 +43,22 @@ operator fun Node.plusAssign(element: Element) {
 fun <E> MutableList<E>.addAndReturn(element: E): E {
     this.add(element)
     return element
+}
+
+fun VirtualFile.relativePathFrom(root: VirtualFile): String {
+    val segments = ArrayList<String>()
+    segments.add(this.name)
+
+    var parent: VirtualFile? = this.parent
+    while(parent != null) {
+        if(parent == root)
+            break
+        segments.add(parent.name)
+        parent = parent.parent
+    }
+
+    if(parent == null || parent != root)
+        throw NetBeansExportException("Could not find path to source root relative to project root")
+
+    return segments.asReversed().joinToString(File.separator)
 }

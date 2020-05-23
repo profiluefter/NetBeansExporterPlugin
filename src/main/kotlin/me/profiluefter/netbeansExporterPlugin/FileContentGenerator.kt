@@ -33,16 +33,18 @@ fun generateFileContent(project: Project, file: NetBeansProjectFile): String {
                             textContent = project.name
                         }
                         this += document.createElement("source-roots").apply {
-                            //TODO: Use modules
-                            this += document.createElement("root").apply {
-                                this["id"] = "src.dir"
-                            }
+                            for (root in SourceRootManager.sourceRoots[SourceRootType.Source]!!)
+                                this += document.createElement("root").apply {
+                                    this["id"] = "src.${root.id}.dir"
+                                    this["name"] = root.name
+                                }
                         }
                         this += document.createElement("test-roots").apply {
-                            //TODO: Use modules
-                            this += document.createElement("root").apply {
-                                this["id"] = "test.src.dir"
-                            }
+                            for (root in SourceRootManager.sourceRoots[SourceRootType.Test]!!)
+                                this += document.createElement("root").apply {
+                                    this["id"] = "test.${root.id}.dir"
+                                    this["name"] = root.name
+                                }
                         }
                     }
                     this += document.createElement("libraries").apply {
@@ -65,9 +67,11 @@ fun generateFileContent(project: Project, file: NetBeansProjectFile): String {
             properties["dist.jlink.output"] = "\${dist.jlink.dir}/${project.name}"
             properties["jlink.launcher.name"] = project.name
 
-            //TODO: Use modules
-            properties["src.dir"] = "src"
-            properties["test.src.dir"] = "test"
+            for (type in SourceRootManager.sourceRoots)
+                for (root in type.value)
+                    properties[
+                            (if (type.key == SourceRootType.Source) "src" else "test") + ".${root.id}.dir"
+                    ] = root.path
 
             val languageLevel =
                 LanguageLevelProjectExtension.getInstance(project).languageLevel.toJavaVersion().toString()
@@ -100,7 +104,8 @@ fun generateFileContent(project: Project, file: NetBeansProjectFile): String {
             properties["javac.classpath"] = buildClasspath(Compile, Provided)
             properties["run.classpath"] = buildClasspath(Compile, Runtime, ProductionOutput)
             properties["javac.test.classpath"] = buildClasspath(Compile, Test, Provided, ProductionOutput)
-            properties["run.test.classpath"] = buildClasspath(Compile, Test, Runtime, Provided, ProductionOutput, TestOutput)
+            properties["run.test.classpath"] =
+                buildClasspath(Compile, Test, Runtime, Provided, ProductionOutput, TestOutput)
 
             properties.output
         }

@@ -1,9 +1,16 @@
 <idea-plugin>
     <id>me.profiluefter.netbeansExporterPlugin</id>
     <name>NetBeans Exporter</name>
-    <vendor url="https://profiluefter.me" email="fabian.paul.gurtner@gmail.com" >Profiluefter</vendor>
+    <vendor url="https://profiluefter.me" email="fabian.paul.gurtner@gmail.com">Profiluefter</vendor>
 
-    <description>Transforms the project so that it can be opened with the NetBeans IDE</description>
+    <description><![CDATA[
+Transforms the project so that it can be opened with the NetBeans IDE.<br><br>
+Features:
+        <ul>
+            <li>Transforms dependencies to jar files and links to them</li>
+            <li>Reads the project's source folders from the Project Structure</li>
+        </ul>
+]]></description>
     <version>1.0.0</version>
     <idea-version since-build="183"/>
 
@@ -14,10 +21,11 @@
 
     <actions>
         <action id="me.profiluefter.netbeansExporterPlugin.NetBeansExportAction"
-                class="me.profiluefter.netbeansExporterPlugin.NetBeansExportAction" text="Export Project to NetBeans...">
+                class="me.profiluefter.netbeansExporterPlugin.NetBeansExportAction"
+                text="Export Project to NetBeans...">
             <add-to-group group-id="ExportImportGroup"/>
-<!--            <add-to-group group-id="FileExportGroup"/>-->
-<!--            <override-text place="MainMenu" text="Project to NetBeans..."/>-->
+            <!--            <add-to-group group-id="FileExportGroup"/>-->
+            <!--            <override-text place="MainMenu" text="Project to NetBeans..."/>-->
         </action>
     </actions>
 </idea-plugin>

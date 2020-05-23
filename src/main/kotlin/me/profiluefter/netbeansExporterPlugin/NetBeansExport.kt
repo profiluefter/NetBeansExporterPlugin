@@ -52,6 +52,7 @@ fun exportNetBeansProject(project: Project?, force: Boolean = false) {
 
         val changedFiles: MutableList<File> = ArrayList()
 
+        SourceRootManager.init(project)
         LibraryManager.init(project)
         changedFiles.addAll(LibraryManager.changedFiles)
 
